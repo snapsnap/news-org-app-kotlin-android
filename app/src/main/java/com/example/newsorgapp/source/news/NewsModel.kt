@@ -1,5 +1,7 @@
 package com.example.newsorgapp.source.news
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import java.io.Serializable
 
 data class NewsModel(
@@ -8,6 +10,7 @@ data class NewsModel(
     val articles: List<ArticleModel>,
 )
 
+@Entity(tableName = "tableArticle")
 data class ArticleModel(
     val source: SourceModel?,
     val author: String?,
@@ -15,8 +18,9 @@ data class ArticleModel(
     val description: String?,
     val url: String?,
     val urlToImage: String?,
+    @PrimaryKey(autoGenerate = false)
     val publishedAt: String,
-    val content: String,
+    val content: String?,
 ) : Serializable
 
 data class SourceModel(

@@ -5,11 +5,12 @@ import com.example.newsorgapp.utils.Constant
 import org.koin.dsl.module
 
 val repositoryModule = module {
-    factory { NewsRepository(get()) }
+    factory { NewsRepository( get(), get() ) }
 }
 
 class NewsRepository(
-    private val api: ApiClient
+    private val api: ApiClient,
+    val db: NewsDao
 ) {
     suspend fun fetch(
         category: String,
@@ -23,5 +24,15 @@ class NewsRepository(
             query = query,
             page = page,
         )
+    }
+
+    suspend fun find(articleModel: ArticleModel) = db.find(articleModel.publishedAt)
+
+    suspend fun save(articleModel: ArticleModel) {
+        db.save(articleModel)
+    }
+
+    suspend fun remove(articleModel: ArticleModel) {
+        db.remove(articleModel)
     }
 }

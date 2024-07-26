@@ -4,8 +4,11 @@ import android.app.Application
 import androidx.appcompat.app.AppCompatDelegate
 import com.example.newsorgapp.source.network.networkModule
 import com.example.newsorgapp.source.news.repositoryModule
+import com.example.newsorgapp.source.persistence.databaseModule
 import com.example.newsorgapp.ui.bookmark.bookmarkModule
 import com.example.newsorgapp.ui.bookmark.bookmarkViewModel
+import com.example.newsorgapp.ui.detail.detailModule
+import com.example.newsorgapp.ui.detail.detailViewModel
 import com.example.newsorgapp.ui.home.homeModule
 import com.example.newsorgapp.ui.home.homeViewModel
 import org.koin.android.ext.koin.androidContext
@@ -29,7 +32,10 @@ class NewsApp: Application() {
                 homeViewModel,
                 homeModule,
                 bookmarkViewModel,
-                bookmarkModule
+                bookmarkModule,
+                databaseModule,
+                detailModule,
+                detailViewModel
             )
         }
     }

@@ -3,12 +3,14 @@ package com.example.newsorgapp.ui.detail
 import android.net.http.SslError
 import android.os.Bundle
 import android.util.Log
+import android.view.Menu
 import android.view.View
 import android.webkit.SslErrorHandler
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -17,11 +19,18 @@ import com.example.newsorgapp.R
 import com.example.newsorgapp.databinding.ActivityDetailBinding
 import com.example.newsorgapp.databinding.CustomToolbarBinding
 import com.example.newsorgapp.source.news.ArticleModel
+import org.koin.androidx.viewmodel.ext.android.viewModel
+import org.koin.dsl.module
 
+val detailModule = module {
+    factory { DetailActivity() }
+}
 class DetailActivity : AppCompatActivity() {
 
     private val binding by lazy { ActivityDetailBinding.inflate(layoutInflater) }
     private lateinit var bindingToolbar: CustomToolbarBinding
+    private val viewModel: DetailViewModel by viewModel()
+
     private val detail by lazy {
         intent.getSerializableExtra("intent_detail") as ArticleModel
     }
@@ -42,9 +51,8 @@ class DetailActivity : AppCompatActivity() {
             setDisplayHomeAsUpEnabled(true)
         }
 
-        Log.e("xxx", detail.url.toString())
-
         detail.let {
+            viewModel.find(it)
             val web = binding.webView
             web.loadUrl( it.url!! )
             web.webViewClient = object : WebViewClient(){
@@ -81,5 +89,21 @@ class DetailActivity : AppCompatActivity() {
     override fun onSupportNavigateUp(): Boolean {
         finish()
         return super.onSupportNavigateUp()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_bookmark, menu)
+        val menuBookmark = menu!!.findItem( R.id.action_bookmark )
+        menuBookmark.setOnMenuItemClickListener {
+
+            viewModel.bookmark(detail)
+            viewModel.find(detail)
+            true
+        }
+        viewModel.isBookmarked.observe(this, {
+            if(it == 0) menuBookmark.setIcon( R.drawable.ic_add )
+            else menuBookmark.setIcon( R.drawable.ic_check )
+        })
+        return super.onCreateOptionsMenu(menu)
     }
 }
