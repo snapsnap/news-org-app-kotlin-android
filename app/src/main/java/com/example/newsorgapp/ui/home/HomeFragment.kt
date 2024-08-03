@@ -7,7 +7,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.appcompat.widget.SearchView
+import androidx.appcompat.widget.SearchView.OnQueryTextListener
+import androidx.core.widget.NestedScrollView
 import androidx.lifecycle.Observer
+import com.example.newsorgapp.R
 import com.example.newsorgapp.databinding.CustomToolbarBinding
 import com.example.newsorgapp.databinding.FragmentHomeBinding
 import com.example.newsorgapp.source.news.ArticleModel
@@ -47,9 +51,27 @@ class HomeFragment : Fragment() {
 
 //        bindingToolbar.textTitle.text = viewModel.title
         bindingToolbar.title = viewModel.title
+        bindingToolbar.container.inflateMenu(R.menu.menu_search)
+        val menu = binding.toolbar.container.menu
+        val search = menu.findItem(R.id.action_search)
+        val searchView = search.actionView as SearchView
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                firstLoad()
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                newText?.let { viewModel.query = it }
+                return true
+            }
+
+        })
+
         binding.listCategory.adapter = categoryAdapter
         viewModel.category.observe( viewLifecycleOwner, Observer {
-            viewModel.fetch()
+            NewsAdapter.VIEW_TYPES == if (it!!.isEmpty()) 1 else 2
+            firstLoad()
         })
 
         binding.listNews.adapter = newsAdapter
@@ -57,6 +79,7 @@ class HomeFragment : Fragment() {
             Timber.e(it.articles.toString())
 //            binding.imageAlert.visibility = if( it.articles.isEmpty() ) View.VISIBLE else View.GONE
 //            binding.textAlert.visibility = if( it.articles.isEmpty() ) View.VISIBLE else View.GONE
+            if(viewModel.page == 1) newsAdapter.clear()
             newsAdapter.add( it.articles )
         })
 
@@ -65,6 +88,20 @@ class HomeFragment : Fragment() {
                 Toast.makeText( requireContext(), it, Toast.LENGTH_SHORT ).show()
             }
         })
+
+        binding.scroll.setOnScrollChangeListener {
+            v: NestedScrollView, _, scrollY, _, _ ->
+            if(scrollY == v.getChildAt(0).measuredHeight - v.measuredHeight){
+                if(viewModel.page <= viewModel.total && viewModel.loadMore.value == false) viewModel.fetch()
+            }
+        }
+    }
+
+    private fun firstLoad(){
+        binding.scroll.scrollTo(0,0)
+        viewModel.page = 1
+        viewModel.total = 1
+        viewModel.fetch()
     }
 
     private val categoryAdapter by lazy {
